@@ -43,6 +43,8 @@ isSpecialTerm q = case prettyShow q of
   "Haskell.Prim.Enum.Enum.enumFromThen"         -> Just mkEnumFromThen
   "Haskell.Prim.Enum.Enum.enumFromThenTo"       -> Just mkEnumFromThenTo
   "Haskell.Prim.case_of_"                       -> Just caseOf
+  "Haskell.Prim.Monad.Monad._>>=_"              -> Just bind
+  "Haskell.Prim.Monad.Monad._>>_"               -> Just sequ
   "Agda.Builtin.FromNat.Number.fromNat"         -> Just fromNat
   "Agda.Builtin.FromNeg.Negative.fromNeg"       -> Just fromNeg
   "Agda.Builtin.FromString.IsString.fromString" -> Just fromString
@@ -115,6 +117,24 @@ delay _ = compileErasedApp
 
 force :: QName -> Elims -> C (Hs.Exp ())
 force _ = compileErasedApp
+
+bind :: QName -> Elims -> C (Hs.Exp ())
+bind q es = compileArgs (drop 1 es) >>= \case
+  (u : Hs.Lambda _ [p] v : vs) -> do
+    let stmt1 = Hs.Generator () p u
+    case v of
+      Hs.Do _ stmts -> return $ Hs.Do () (stmt1 : stmts)
+      _             -> return $ Hs.Do () [stmt1, Hs.Qualifier () v]
+  vs     -> return $ hsVar "_>>=_" `eApp` vs
+
+sequ :: QName -> Elims -> C (Hs.Exp ())
+sequ q es = compileArgs es >>= \case
+  (u : v : vs) -> do
+    let stmt1 = Hs.Qualifier () u
+    case v of
+      Hs.Do _ stmts -> return $ Hs.Do () (stmt1 : stmts)
+      _             -> return $ Hs.Do () [stmt1, Hs.Qualifier () v]
+  vs -> return $ hsVar "_>>_" `eApp` vs
 
 caseOf :: QName -> Elims -> C (Hs.Exp ())
 caseOf _ es = compileArgs es >>= \ case

@@ -26,6 +26,7 @@ import Vector
 import QualifiedModule
 import Superclass
 import UnboxPragma
+import DoNotation
 
 {-# FOREIGN AGDA2HS
 import Issue14
@@ -53,4 +54,5 @@ import Vector
 import QualifiedModule
 import Superclass
 import UnboxPragma
+import DoNotation
 #-}

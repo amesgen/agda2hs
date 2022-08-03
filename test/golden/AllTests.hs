@@ -25,4 +25,5 @@ import Vector
 import QualifiedModule
 import Superclass
 import UnboxPragma
+import DoNotation
 
